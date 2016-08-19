@@ -11,9 +11,9 @@ using namespace std;
 
 #ifdef USE_SKIA
 #include "PathSkia.h"
-#include "skia/include/core/SkPaint.h"
-#include "skia/include/core/SkPath.h"
-#include "skia/include/ports/SkTypeface_win.h"
+#include "SkPaint.h"
+#include "SkPath.h"
+#include "SkTypeface_win.h"
 #endif
 
 #include <vector>

@@ -6,14 +6,14 @@
 
 #include "Logging.h"
 #include "SourceSurfaceSkia.h"
-#include "skia/include/core/SkBitmap.h"
-#include "skia/include/core/SkDevice.h"
+#include "SkBitmap.h"
+#include "SkDevice.h"
 #include "HelpersSkia.h"
 #include "DrawTargetSkia.h"
 #include "DataSurfaceHelpers.h"
 
 #ifdef USE_SKIA_GPU
-#include "skia/include/gpu/SkGrPixelRef.h"
+#include "SkGrPixelRef.h"
 #endif
 
 namespace mozilla {

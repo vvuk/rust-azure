@@ -33,7 +33,7 @@
 
 #include <algorithm>
 
-#include "skia/include/core/SkTypes.h"
+#include "SkTypes.h"
 
 namespace skia {
 

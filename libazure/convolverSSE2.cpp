@@ -28,7 +28,7 @@
 
 #include "convolver.h"
 #include <algorithm>
-#include "skia/include/core/SkTypes.h"
+#include "SkTypes.h"
 
 #include <emmintrin.h>  // ARCH_CPU_X86_FAMILY was defined in build/config.h
 

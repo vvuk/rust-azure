@@ -1,5 +1,6 @@
 project(azure)
 cmake_minimum_required(VERSION 2.8)
+set(CMAKE_BUILD_TYPE_DUMMY CMAKE_BUILD_TYPE)
 
 function(set_prefix var prefix)
   string(REGEX REPLACE "(^|;)([^;]+)" "\\1${prefix}\\2" tmp "${ARGN}")
@@ -15,9 +16,6 @@ endif(CCACHE_FOUND)
 
 if(MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Zi")
-  # TODO(vlad): we need to update our copy of Moz2D!
-  # VS2015/VC 14.0 needs this -- we should be using unordered_set instead of hash_set
-  add_definitions(-D_SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS)
 else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 endif()
@@ -94,6 +92,7 @@ set_prefix(LIBAZURE_SRC libazure/
 	DataSourceSurface.cpp
 	DataSurfaceHelpers.cpp
 	DrawEventRecorder.cpp
+	DrawingJob.cpp
 	DrawTargetCapture.cpp
 	DrawTarget.cpp
 	DrawTargetDual.cpp
@@ -105,14 +104,17 @@ set_prefix(LIBAZURE_SRC libazure/
 	FilterProcessing.cpp
 	FilterProcessingScalar.cpp
 	ImageScaling.cpp
+	JobScheduler.cpp
 	Matrix.cpp
 	Path.cpp
 	PathHelpers.cpp
 	PathRecording.cpp
 	PathSkia.cpp
+	Quaternion.cpp
 	RecordedEvent.cpp
 	ScaledFontBase.cpp
-	ScaledFontSkia.cpp
+	SFNTData.cpp
+	SFNTNameTable.cpp
 	SourceSurfaceRawData.cpp
 	SourceSurfaceSkia.cpp
 )
@@ -122,10 +124,15 @@ set_prefix(LIBAZURE_X86_SRC libazure/
   FilterProcessingSSE2.cpp
   ImageScalingSSE2.cpp
   convolverSSE2.cpp
+  ssse3-scaler.c
+  )
+
+set_prefix(LIBAZURE_NEON_SRC libazure/
+  BlurNEON.cpp
   )
 
 if(APPLE)
-  add_definitions(-DXP_MACOSX -DXP_UNIX -Dtypeof=__typeof__)
+  add_definitions(-DXP_MACOSX -DXP_UNIX -Dtypeof=__typeof__ -DOS_MACOSX)
   set_prefix(LIBAZURE_PLATFORM_SRC libazure/
     DrawTargetCG.cpp
     MacIOSurface.cpp
@@ -136,9 +143,12 @@ if(APPLE)
 endif() # MacOS X
 
 if(WIN32)
-  add_definitions(-DWIN32 -DXP_WIN -D_WIN32_WINNT=0x0600 -DSK_BUILD_FOR_WIN32)
+  add_definitions(-DWIN32 -DXP_WIN -D_WIN32_WINNT=0x0600 -DSK_BUILD_FOR_WIN32 -DOS_WIN)
   
   if(MSVC)
+    add_definitions(-DNOMINMAX)
+    add_definitions(-DCOMPILER_MSVC)
+    add_definitions(-D_USE_MATH_DEFINES)
     # Enable C++ exceptions; extern "c" defaults to nothrow
     add_definitions(-EHsc)
   endif()
@@ -148,9 +158,11 @@ if(WIN32)
   endif()
 
   set_prefix(LIBAZURE_PLATFORM_SRC libazure/
-    DrawTargetD2D.cpp
-    SourceSurfaceD2D.cpp
-    SourceSurfaceD2DTarget.cpp
+    DrawTargetD2D1.cpp
+    ExtendInputEffectD2D1.cpp
+    NativeFontResourceDWrite.cpp
+    NativeFontResourceGDI.cpp
+    SourceSurfaceD2D1.cpp
     ScaledFontWin.cpp
     ScaledFontDWrite.cpp
     PathD2D.cpp
@@ -160,7 +172,7 @@ endif()
 if(ENV{TARGET} MATCHES androideabi)
   add_definitions(-DXP_UNIX -DSK_BUILD_FOR_ANDROID -DMOZ_ENABLE_FREETYPE)
 elseif(ENV{TARGET} MATCHES linux)
-  add_definitions(-DXP_UNIX -DSK_BUILD_FOR_UNIX -DMOZ_ENABLE_FREETYPE)
+  add_definitions(-DXP_UNIX -DSK_BUILD_FOR_UNIX -DMOZ_ENABLE_FREETYPE -DOS_LINUX)
 endif()
 
 set(ALL_SRC

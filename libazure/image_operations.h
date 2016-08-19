@@ -29,10 +29,10 @@
 #ifndef SKIA_EXT_IMAGE_OPERATIONS_H_
 #define SKIA_EXT_IMAGE_OPERATIONS_H_
 
-#include "skia/include/core/SkTypes.h"
+#include "SkTypes.h"
 #include "Types.h"
 #include "convolver.h"
-#include "skia/include/core/SkRect.h"
+#include "SkRect.h"
 
 class SkBitmap;
 struct SkIRect;

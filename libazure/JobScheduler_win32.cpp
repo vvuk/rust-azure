@@ -4,7 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "JobScheduler.h"
-#include "mozilla/gfx/Logging.h"
+#include "Logging.h"
 
 using namespace std;
 

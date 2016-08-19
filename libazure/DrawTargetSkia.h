@@ -6,7 +6,7 @@
 #ifndef _MOZILLA_GFX_SOURCESURFACESKIA_H
 #define _MOZILLA_GFX_SOURCESURFACESKIA_H
 
-#include "skia/include/core/SkCanvas.h"
+#include "SkCanvas.h"
 
 #include "2D.h"
 #include "HelpersSkia.h"

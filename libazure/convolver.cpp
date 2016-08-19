@@ -31,7 +31,7 @@
 
 #include <algorithm>
 
-#include "skia/include/core/SkTypes.h"
+#include "SkTypes.h"
 
 
 #if defined(USE_SSE2)

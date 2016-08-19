@@ -7,7 +7,7 @@
 #include "Logging.h"
 
 #if defined(USE_SKIA) && defined(MOZ_ENABLE_FREETYPE)
-#include "skia/include/ports/SkTypeface_cairo.h"
+#include "SkTypeface_cairo.h"
 #endif
 
 namespace mozilla {

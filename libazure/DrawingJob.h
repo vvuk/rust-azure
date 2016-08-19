@@ -10,9 +10,9 @@
 
 #include "mozilla/RefPtr.h"
 #include "mozilla/Assertions.h"
-#include "mozilla/gfx/Matrix.h"
-#include "mozilla/gfx/JobScheduler.h"
-#include "mozilla/gfx/IterableArena.h"
+#include "Matrix.h"
+#include "JobScheduler.h"
+#include "IterableArena.h"
 #include "mozilla/RefCounted.h"
 #include "DrawCommand.h"
 

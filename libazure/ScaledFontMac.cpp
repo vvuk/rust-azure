@@ -6,9 +6,9 @@
 #include "ScaledFontMac.h"
 #ifdef USE_SKIA
 #include "PathSkia.h"
-#include "skia/include/core/SkPaint.h"
-#include "skia/include/core/SkPath.h"
-#include "skia/include/ports/SkTypeface_mac.h"
+#include "SkPaint.h"
+#include "SkPath.h"
+#include "SkTypeface_mac.h"
 #endif
 #include "DrawTargetCG.h"
 #include <vector>

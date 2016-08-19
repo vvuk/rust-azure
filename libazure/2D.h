@@ -17,7 +17,7 @@
 // (contrary to RefCounted<T> which requires knowing the type T) and, in particular,
 // without having a dependency on that type. This is used for DrawTargetSkia
 // to be able to hold on to a GLContext.
-#include "mozilla/GenericRefCounted.h"
+#include "GenericRefCounted.h"
 
 // This RefPtr class isn't ideal for usage in Azure, as it doesn't allow T**
 // outparams using the &-operator. But it will have to do as there's no easy

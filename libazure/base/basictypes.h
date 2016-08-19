@@ -266,7 +266,8 @@ enum LinkerInitialized { LINKER_INITIALIZED };
 }  // base
 
 
+#if 0
 #include "nscore.h"             // pick up mozalloc operator new() etc.
-
+#endif
 
 #endif  // BASE_BASICTYPES_H_

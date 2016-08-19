@@ -5,7 +5,6 @@
 #include "azure-c.h"
 #include "2D.h"
 #include "Filters.h"
-#include "ScaledFontSkia.h"
 #include "Types.h"
 
 #include <assert.h>
@@ -557,7 +556,8 @@ AzCreateScaledFontForNativeFont(AzNativeFont *aNativeFont, AzFloat aSize) {
 
 extern "C" AzScaledFontRef
 AzCreateScaledFontForTrueTypeData(uint8_t *aData, uint32_t aSize, uint32_t aFaceIndex, AzFloat aGlyphSize, AzFontType) {
-    RefPtr<gfx::ScaledFont> font = new gfx::ScaledFontSkia(aData, aSize, aFaceIndex, aGlyphSize);
+    RefPtr<gfx::NativeFontResource> rsrc = gfx::Factory::CreateNativeFontResource(aData, aSize, SKIA_FONT_FACE);
+    RefPtr<gfx::ScaledFont> font = rsrc->CreateScaledFont(aFaceIndex, aGlyphSize);
     font->AddRef();
     return font;
 }

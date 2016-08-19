@@ -7,7 +7,7 @@
 #include "Logging.h"
 
 #ifdef USE_SKIA
-#include "skia/include/ports/SkTypeface_cairo.h"
+#include "SkTypeface_cairo.h"
 #endif
 
 namespace mozilla {

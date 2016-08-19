@@ -5,7 +5,7 @@
 
 #include "DrawingJob.h"
 #include "JobScheduler.h"
-#include "mozilla/gfx/2D.h"
+#include "2D.h"
 
 namespace mozilla {
 namespace gfx {

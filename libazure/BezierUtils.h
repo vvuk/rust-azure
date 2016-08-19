@@ -6,7 +6,7 @@
 #ifndef mozilla_BezierUtils_h_
 #define mozilla_BezierUtils_h_
 
-#include "mozilla/gfx/2D.h"
+#include "2D.h"
 #include "gfxRect.h"
 
 namespace mozilla {

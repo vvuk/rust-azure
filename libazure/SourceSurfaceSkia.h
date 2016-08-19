@@ -8,8 +8,8 @@
 
 #include "2D.h"
 #include <vector>
-#include "skia/include/core/SkCanvas.h"
-#include "skia/include/core/SkBitmap.h"
+#include "SkCanvas.h"
+#include "SkBitmap.h"
 
 namespace mozilla {
 

@@ -7,11 +7,10 @@
 
 #include "AutoHelpersWin.h"
 #include "Logging.h"
-#include "nsString.h"
 #include "SFNTData.h"
 
 #ifdef USE_SKIA
-#include "skia/include/ports/SkTypeface_win.h"
+#include "SkTypeface_win.h"
 #endif
 
 #ifdef USE_CAIRO_SCALED_FONT
@@ -69,8 +68,7 @@ ScaledFontWin::GetFontFileData(FontFileDataOutput aDataCallback, void *aBaton)
           reinterpret_cast<char16_t*>(mLogFont.lfFaceName), &index, LF_FACESIZE - 1)) {
       gfxWarning() << "Failed to get index for face name.";
       gfxDevCrash(LogReason::GetFontFileDataFailed) <<
-        "Failed to get index for face name |" <<
-        NS_ConvertUTF16toUTF8(mLogFont.lfFaceName).get() << "|.";
+        "Failed to get index for face name |(can't covert utf16 to utf8 easily)|.";
       return false;
     }
   }

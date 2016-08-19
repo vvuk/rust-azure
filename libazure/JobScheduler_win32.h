@@ -11,8 +11,8 @@
 #include <list>
 
 #include "mozilla/RefPtr.h"
-#include "mozilla/gfx/CriticalSection.h"
 #include "mozilla/RefCounted.h"
+#include "CriticalSection.h"
 
 namespace mozilla {
 namespace gfx {

@@ -36,10 +36,10 @@
 
 #include "base/stack_container.h"
 #include "convolver.h"
-#include "skia/include/core/SkColorPriv.h"
-#include "skia/include/core/SkBitmap.h"
-#include "skia/include/core/SkRect.h"
-#include "skia/include/core/SkFontHost.h"
+#include "SkColorPriv.h"
+#include "SkBitmap.h"
+#include "SkRect.h"
+#include "SkFontHost.h"
 
 namespace skia {
 

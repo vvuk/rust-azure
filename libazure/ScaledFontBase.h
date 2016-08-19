@@ -9,13 +9,13 @@
 #include "2D.h"
 
 // Skia uses cairo_scaled_font_t as the internal font type in ScaledFont
-#if defined(USE_SKIA) || defined(USE_CAIRO)
+#if defined(USE_CAIRO)
 #define USE_CAIRO_SCALED_FONT
 #endif
 
 #ifdef USE_SKIA
-#include "skia/include/core/SkPath.h"
-#include "skia/include/core/SkTypeface.h"
+#include "SkPath.h"
+#include "SkTypeface.h"
 #endif
 #ifdef USE_CAIRO_SCALED_FONT
 #include "cairo.h"

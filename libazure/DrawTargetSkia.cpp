@@ -7,16 +7,16 @@
 #include "SourceSurfaceSkia.h"
 #include "ScaledFontBase.h"
 #include "ScaledFontCairo.h"
-#include "skia/include/core/SkBitmapDevice.h"
+#include "SkBitmapDevice.h"
 #include "FilterNodeSoftware.h"
 #include "HelpersSkia.h"
 
-#include "skia/include/core/SkSurface.h"
-#include "skia/include/core/SkTypeface.h"
-#include "skia/include/effects/SkGradientShader.h"
-#include "skia/include/core/SkColorFilter.h"
-#include "skia/include/effects/SkBlurImageFilter.h"
-#include "skia/include/effects/SkLayerRasterizer.h"
+#include "SkSurface.h"
+#include "SkTypeface.h"
+#include "SkGradientShader.h"
+#include "SkColorFilter.h"
+#include "SkBlurImageFilter.h"
+#include "SkLayerRasterizer.h"
 #include "Blur.h"
 #include "Logging.h"
 #include "Tools.h"
@@ -25,9 +25,9 @@
 
 #ifdef USE_SKIA_GPU
 #include "GLDefs.h"
-#include "skia/include/gpu/SkGr.h"
-#include "skia/include/gpu/GrContext.h"
-#include "skia/include/gpu/gl/GrGLInterface.h"
+#include "SkGr.h"
+#include "GrContext.h"
+#include "gl/GrGLInterface.h"
 #endif
 
 #ifdef MOZ_WIDGET_COCOA

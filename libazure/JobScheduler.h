@@ -7,13 +7,13 @@
 #define MOZILLA_GFX_TASKSCHEDULER_H_
 
 #include "mozilla/RefPtr.h"
-#include "mozilla/gfx/Types.h"
+#include "Types.h"
 #include "mozilla/RefCounted.h"
 
 #ifdef WIN32
-#include "mozilla/gfx/JobScheduler_win32.h"
+#include "JobScheduler_win32.h"
 #else
-#include "mozilla/gfx/JobScheduler_posix.h"
+#include "JobScheduler_posix.h"
 #endif
 
 #include <vector>

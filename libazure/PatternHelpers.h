@@ -7,7 +7,7 @@
 #define _MOZILLA_GFX_PATTERNHELPERS_H
 
 #include "mozilla/Alignment.h"
-#include "mozilla/gfx/2D.h"
+#include "2D.h"
 
 namespace mozilla {
 namespace gfx {

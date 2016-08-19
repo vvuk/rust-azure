@@ -11,8 +11,8 @@
 #include <ostream>
 #include "mozilla/Attributes.h"
 #include "mozilla/DebugOnly.h"
-#include "mozilla/gfx/MatrixFwd.h"
-#include "mozilla/gfx/Point.h"
+#include "MatrixFwd.h"
+#include "Point.h"
 
 namespace mozilla {
 namespace gfx {

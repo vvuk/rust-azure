@@ -7,7 +7,7 @@
 
 #ifdef USE_SKIA
 #include "PathSkia.h"
-#include "skia/include/core/SkPaint.h"
+#include "SkPaint.h"
 #endif
 
 #ifdef USE_CAIRO

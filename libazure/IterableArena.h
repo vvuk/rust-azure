@@ -8,7 +8,7 @@
 
 #include "mozilla/Move.h"
 #include "mozilla/Assertions.h"
-#include "mozilla/gfx/Logging.h"
+#include "Logging.h"
 
 #include <string.h>
 #include <vector>

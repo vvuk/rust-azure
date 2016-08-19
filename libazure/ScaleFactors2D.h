@@ -10,7 +10,7 @@
 
 #include "mozilla/Attributes.h"
 #include "mozilla/FloatingPoint.h"
-#include "mozilla/gfx/ScaleFactor.h"
+#include "ScaleFactor.h"
 
 #include "gfxPoint.h"
 
