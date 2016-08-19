@@ -227,6 +227,13 @@ NativeFontResourceDWrite::Create(uint8_t *aFontData, uint32_t aDataLength,
     return nullptr;
   }
 
+#if !defined(USE_CAIRO_SCALED_FONT)
+  if (aNeedsCairo) {
+    gfxCriticalError() << "Trying to create NativeFontResourceDWrite with aNeedsCairo == true, but no cairo support is compiled";
+    return nullptr;
+  }
+#endif
+
   uint64_t fontFileKey = sNextFontFileKey++;
   RefPtr<IDWriteFontFileStream> ffsRef =
     new DWriteFontFileStream(aFontData, aDataLength, fontFileKey);
@@ -275,10 +282,12 @@ NativeFontResourceDWrite::CreateScaledFont(uint32_t aIndex, uint32_t aGlyphSize)
   }
 
   RefPtr<ScaledFontBase> scaledFont = new ScaledFontDWrite(fontFace, aGlyphSize);
+#ifdef USE_CAIRO_SCALED_FONT
   if (mNeedsCairo && !scaledFont->PopulateCairoScaledFont()) {
     gfxWarning() << "Unable to create cairo scaled font DWrite font.";
     return nullptr;
   }
+#endif
 
   return scaledFont.forget();
 }

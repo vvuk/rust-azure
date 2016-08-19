@@ -25,6 +25,13 @@ NativeFontResourceGDI::Create(uint8_t *aFontData, uint32_t aDataLength,
     return nullptr;
   }
 
+#if !defined(USE_CAIRO_SCALED_FONT)
+  if (aNeedsCairo) {
+    gfxCriticalError() << "Trying to create NativeFontResourceGDI with aNeedsCairo == true, but no cairo support is compiled";
+    return nullptr;
+  }
+#endif
+
   Vector<mozilla::u16string> fontNames;
   if (!sfntData->GetU16FullNames(fontNames)) {
     gfxWarning() << "Failed to get font names from font.";
@@ -100,10 +107,12 @@ NativeFontResourceGDI::CreateScaledFont(uint32_t aIndex, uint32_t aGlyphSize)
   // Constructor for ScaledFontWin dereferences and copies the LOGFONT, so we
   // are safe to pass this reference.
   RefPtr<ScaledFontBase> scaledFont = new ScaledFontWin(&logFont, aGlyphSize);
+#ifdef USE_CAIRO_SCALED_FONT
   if (mNeedsCairo && !scaledFont->PopulateCairoScaledFont()) {
     gfxWarning() << "Unable to create cairo scaled font DWrite font.";
     return nullptr;
   }
+#endif
 
   return scaledFont.forget();
 }
