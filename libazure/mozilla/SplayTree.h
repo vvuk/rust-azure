@@ -13,7 +13,7 @@
 #define mozilla_SplayTree_h
 
 #include "mozilla/Assertions.h"
-#include "mozilla/NullPtr.h"
+#include "mozilla/Attributes.h"
 
 namespace mozilla {
 
@@ -56,7 +56,7 @@ class SplayTree
   T* mRoot;
 
 public:
-  SplayTree()
+  constexpr SplayTree()
     : mRoot(nullptr)
   {}
 
@@ -76,25 +76,22 @@ public:
     return Comparator::compare(aValue, *last) == 0 ? last : nullptr;
   }
 
-  bool insert(T* aValue)
+  void insert(T* aValue)
   {
     MOZ_ASSERT(!find(*aValue), "Duplicate elements are not allowed.");
 
     if (!mRoot) {
       mRoot = aValue;
-      return true;
+      return;
     }
     T* last = lookup(*aValue);
     int cmp = Comparator::compare(*aValue, *last);
 
-    T** parentPointer = (cmp < 0) ? &last->mLeft : &last->mRight;
-    MOZ_ASSERT(!*parentPointer);
-    *parentPointer = aValue;
-    aValue->mParent = last;
-
-    splay(aValue);
-    return true;
+    finishInsertion(last, cmp, aValue);
+    return;
   }
+
+  T* findOrInsert(const T& aValue);
 
   T* remove(const T& aValue)
   {
@@ -197,6 +194,18 @@ private:
     return parent;
   }
 
+  void finishInsertion(T* aLast, int32_t aCmp, T* aNew)
+  {
+    MOZ_ASSERT(aCmp, "Nodes shouldn't be equal!");
+
+    T** parentPointer = (aCmp < 0) ? &aLast->mLeft : &aLast->mRight;
+    MOZ_ASSERT(!*parentPointer);
+    *parentPointer = aNew;
+    aNew->mParent = aLast;
+
+    splay(aNew);
+  }
+
   /**
    * Rotate the tree until |node| is at the root of the tree. Performing
    * the rotations in this fashion preserves the amortized balancing of
@@ -292,9 +301,29 @@ private:
     return aNode;
   }
 
-  SplayTree(const SplayTree&) MOZ_DELETE;
-  void operator=(const SplayTree&) MOZ_DELETE;
+  SplayTree(const SplayTree&) = delete;
+  void operator=(const SplayTree&) = delete;
 };
+
+template<typename T, class Comparator>
+T*
+SplayTree<T, Comparator>::findOrInsert(const T& aValue)
+{
+  if (!mRoot) {
+    mRoot = new T(aValue);
+    return mRoot;
+  }
+
+  T* last = lookup(aValue);
+  int cmp = Comparator::compare(aValue, *last);
+  if (!cmp) {
+    return last;
+  }
+
+  T* t = new T(aValue);
+  finishInsertion(last, cmp, t);
+  return t;
+}
 
 }  /* namespace mozilla */
 

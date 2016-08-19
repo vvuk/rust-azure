@@ -5,18 +5,15 @@
 
 #include "TestBugs.h"
 #include "2D.h"
+#include <string.h>
 
 using namespace mozilla;
 using namespace mozilla::gfx;
 
 TestBugs::TestBugs()
 {
-#define TEST_CLASS TestBugs
-#ifdef USE_CAIRO
-  REGISTER_TEST(CairoClip918671);
-  REGISTER_TEST(PushPopClip950550);
-#endif
-#undef TEST_CLASS
+  REGISTER_TEST(TestBugs, CairoClip918671);
+  REGISTER_TEST(TestBugs, PushPopClip950550);
 }
 
 void

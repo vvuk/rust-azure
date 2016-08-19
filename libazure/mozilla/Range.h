@@ -7,7 +7,6 @@
 #ifndef mozilla_Range_h
 #define mozilla_Range_h
 
-#include "mozilla/NullPtr.h"
 #include "mozilla/RangedPtr.h"
 
 #include <stddef.h>
@@ -21,15 +20,20 @@ class Range
   const RangedPtr<T> mStart;
   const RangedPtr<T> mEnd;
 
-  typedef void (Range::* ConvertibleToBool)();
-  void nonNull() {}
-
 public:
   Range() : mStart(nullptr, 0), mEnd(nullptr, 0) {}
   Range(T* aPtr, size_t aLength)
     : mStart(aPtr, aPtr, aPtr + aLength),
       mEnd(aPtr + aLength, aPtr, aPtr + aLength)
   {}
+  Range(const RangedPtr<T>& aStart, const RangedPtr<T>& aEnd)
+    : mStart(aStart.get(), aStart.get(), aEnd.get()),
+      mEnd(aEnd.get(), aStart.get(), aEnd.get())
+  {
+    // Only accept two RangedPtrs within the same range.
+    aStart.checkIdenticalRange(aEnd);
+    MOZ_ASSERT(aStart <= aEnd);
+  }
 
   RangedPtr<T> start() const { return mStart; }
   RangedPtr<T> end() const { return mEnd; }
@@ -37,7 +41,7 @@ public:
 
   T& operator[](size_t aOffset) const { return mStart[aOffset]; }
 
-  operator ConvertibleToBool() const { return mStart ? &Range::nonNull : 0; }
+  explicit operator bool() const { return mStart != nullptr; }
 };
 
 } // namespace mozilla

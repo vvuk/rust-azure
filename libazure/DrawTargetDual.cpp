@@ -15,6 +15,11 @@ class DualSurface
 public:
   inline explicit DualSurface(SourceSurface *aSurface)
   {
+    if (!aSurface) {
+      mA = mB = nullptr;
+      return;
+    }
+
     if (aSurface->GetType() != SurfaceType::DUAL_DT) {
       mA = mB = aSurface;
       return;
@@ -56,9 +61,11 @@ public:
     const SourceSurfaceDual *ssDual =
       static_cast<const SourceSurfaceDual*>(surfPat->mSurface.get());
     mA = new (mSurfPatA.addr()) SurfacePattern(ssDual->mA, surfPat->mExtendMode,
-                                               surfPat->mMatrix, surfPat->mFilter);
+                                               surfPat->mMatrix,
+                                               surfPat->mSamplingFilter);
     mB = new (mSurfPatB.addr()) SurfacePattern(ssDual->mB, surfPat->mExtendMode,
-                                               surfPat->mMatrix, surfPat->mFilter);
+                                               surfPat->mMatrix,
+                                               surfPat->mSamplingFilter);
     mPatternsInitialized = true;
   }
 
@@ -80,6 +87,13 @@ public:
 };
 
 void
+DrawTargetDual::DetachAllSnapshots()
+{
+  mA->DetachAllSnapshots();
+  mB->DetachAllSnapshots();
+}
+
+void
 DrawTargetDual::DrawSurface(SourceSurface *aSurface, const Rect &aDest, const Rect &aSource,
                             const DrawSurfaceOptions &aSurfOptions, const DrawOptions &aOptions)
 {
@@ -96,14 +110,6 @@ DrawTargetDual::DrawSurfaceWithShadow(SourceSurface *aSurface, const Point &aDes
   DualSurface surface(aSurface);
   mA->DrawSurfaceWithShadow(surface.mA, aDest, aColor, aOffset, aSigma, aOp);
   mB->DrawSurfaceWithShadow(surface.mB, aDest, aColor, aOffset, aSigma, aOp);
-}
-
-void
-DrawTargetDual::DrawFilter(FilterNode *aNode, const Rect &aSourceRect,
-                           const Point &aDestPoint, const DrawOptions &aOptions)
-{
-  mA->DrawFilter(aNode, aSourceRect, aDestPoint, aOptions);
-  mB->DrawFilter(aNode, aSourceRect, aDestPoint, aOptions);
 }
 
 void
@@ -189,7 +195,17 @@ DrawTargetDual::Mask(const Pattern &aSource, const Pattern &aMask, const DrawOpt
   mB->Mask(*source.mB, *mask.mB, aOptions);
 }
 
-TemporaryRef<DrawTarget>
+void
+DrawTargetDual::PushLayer(bool aOpaque, Float aOpacity, SourceSurface* aMask,
+                          const Matrix& aMaskTransform, const IntRect& aBounds,
+                          bool aCopyBackground)
+{
+  DualSurface mask(aMask);
+  mA->PushLayer(aOpaque, aOpacity, mask.mA, aMaskTransform, aBounds, aCopyBackground);
+  mB->PushLayer(aOpaque, aOpacity, mask.mB, aMaskTransform, aBounds, aCopyBackground);
+}
+
+already_AddRefed<DrawTarget>
 DrawTargetDual::CreateSimilarDrawTarget(const IntSize &aSize, SurfaceFormat aFormat) const
 {
   RefPtr<DrawTarget> dtA = mA->CreateSimilarDrawTarget(aSize, aFormat);
@@ -200,8 +216,8 @@ DrawTargetDual::CreateSimilarDrawTarget(const IntSize &aSize, SurfaceFormat aFor
     return nullptr;
   }
 
-  return new DrawTargetDual(dtA, dtB);
+  return MakeAndAddRef<DrawTargetDual>(dtA, dtB);
 }
 
-}
-}
+} // namespace gfx
+} // namespace mozilla

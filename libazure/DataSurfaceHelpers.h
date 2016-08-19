@@ -8,11 +8,35 @@
 
 #include "2D.h"
 
+#include "mozilla/UniquePtr.h"
+
 namespace mozilla {
 namespace gfx {
 
+/**
+ * Create a DataSourceSurface and init the surface with the |aData|. The stride
+ * of this source surface might be different from the input data's |aDataStride|.
+ * System will try to use the optimal one.
+ */
+already_AddRefed<DataSourceSurface>
+CreateDataSourceSurfaceFromData(const IntSize& aSize,
+                                SurfaceFormat aFormat,
+                                const uint8_t* aData,
+                                int32_t aDataStride);
+
+/**
+ * Similar to CreateDataSourceSurfaceFromData(), but could setup the stride for
+ * this surface.
+ */
+already_AddRefed<DataSourceSurface>
+CreateDataSourceSurfaceWithStrideFromData(const IntSize &aSize,
+                                          SurfaceFormat aFormat,
+                                          int32_t aStride,
+                                          const uint8_t* aData,
+                                          int32_t aDataStride);
+
 void
-ConvertBGRXToBGRA(uint8_t* aData, const IntSize &aSize, int32_t aStride);
+ConvertBGRXToBGRA(uint8_t* aData, const IntSize &aSize, const int32_t aStride);
 
 /**
  * Copy the pixel data from aSrc and pack it into aDst. aSrcSize, aSrcStride
@@ -25,11 +49,9 @@ CopySurfaceDataToPackedArray(uint8_t* aSrc, uint8_t* aDst, IntSize aSrcSize,
                              int32_t aSrcStride, int32_t aBytesPerPixel);
 
 /**
- * Convert aSurface to a packed buffer in BGRA format. The pixel data is
- * returned in a buffer allocated with new uint8_t[]. The caller then has
- * ownership of the buffer and is responsible for delete[]'ing it.
+ * Convert aSurface to a packed buffer in BGRA format.
  */
-uint8_t*
+UniquePtr<uint8_t[]>
 SurfaceToPackedBGRA(DataSourceSurface *aSurface);
 
 /**
@@ -70,7 +92,40 @@ BufferSizeFromStrideAndHeight(int32_t aStride,
                               int32_t aHeight,
                               int32_t aExtraBytes = 0);
 
-}
-}
+/**
+ * Copy aSrcRect from aSrc to aDest starting at aDestPoint.
+ * @returns false if the copy is not successful or the aSrc's size is empty.
+ */
+bool
+CopyRect(DataSourceSurface* aSrc, DataSourceSurface* aDest,
+         IntRect aSrcRect, IntPoint aDestPoint);
+
+/**
+ * Create a non aliasing copy of aSource. This creates a new DataSourceSurface
+ * using the factory and copies the bits.
+ *
+ * @return a dss allocated by Factory that contains a copy a aSource.
+ */
+already_AddRefed<DataSourceSurface>
+CreateDataSourceSurfaceByCloning(DataSourceSurface* aSource);
+
+/**
+ * Return the byte at aPoint.
+ */
+uint8_t*
+DataAtOffset(DataSourceSurface* aSurface,
+             const DataSourceSurface::MappedSurface* aMap,
+             IntPoint aPoint);
+
+/**
+ * Check if aPoint is contained by the surface.
+ *
+ * @returns true if and only if aPoint is inside the surface.
+ */
+bool
+SurfaceContainsPoint(SourceSurface* aSurface, const IntPoint& aPoint);
+
+} // namespace gfx
+} // namespace mozilla
 
 #endif // _MOZILLA_GFX_DATASURFACEHELPERS_H

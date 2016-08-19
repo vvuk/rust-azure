@@ -7,8 +7,10 @@
 #define MOZILLA_GFX_BASEPOINT_H_
 
 #include <cmath>
+#include <ostream>
 #include "mozilla/Attributes.h"
-#include "mozilla/ToString.h"
+#include "mozilla/FloatingPoint.h"
+#include "mozilla/TypeTraits.h"
 
 namespace mozilla {
 namespace gfx {
@@ -20,11 +22,16 @@ namespace gfx {
  */
 template <class T, class Sub, class Coord = T>
 struct BasePoint {
-  T x, y;
+  union {
+    struct {
+      T x, y;
+    };
+    T components[2];
+  };
 
   // Constructors
-  MOZ_CONSTEXPR BasePoint() : x(0), y(0) {}
-  MOZ_CONSTEXPR BasePoint(Coord aX, Coord aY) : x(aX), y(aY) {}
+  constexpr BasePoint() : x(0), y(0) {}
+  constexpr BasePoint(Coord aX, Coord aY) : x(aX), y(aY) {}
 
   void MoveTo(T aX, T aY) { x = aX; y = aY; }
   void MoveBy(T aDx, T aDy) { x += aDx; y += aDy; }
@@ -67,8 +74,16 @@ struct BasePoint {
     return Sub(-x, -y);
   }
 
+  T DotProduct(const Sub& aPoint) const {
+      return x * aPoint.x + y * aPoint.y;
+  }
+
   T Length() const {
     return hypot(x, y);
+  }
+
+  T LengthSquare() const {
+    return x * x + y * y;
   }
 
   // Round() is *not* rounding to nearest integer if the values are negative.
@@ -80,13 +95,27 @@ struct BasePoint {
     return *static_cast<Sub*>(this);
   }
 
+  // "Finite" means not inf and not NaN
+  bool IsFinite() const
+  {
+    typedef typename mozilla::Conditional<mozilla::IsSame<T, float>::value, float, double>::Type FloatType;
+    return (mozilla::IsFinite(FloatType(x)) && mozilla::IsFinite(FloatType(y)));
+    return true;
+  }
+
+  void Clamp(T aMaxAbsValue)
+  {
+    x = std::max(std::min(x, aMaxAbsValue), -aMaxAbsValue);
+    y = std::max(std::min(y, aMaxAbsValue), -aMaxAbsValue);
+  }
+
   friend std::ostream& operator<<(std::ostream& stream, const BasePoint<T, Sub, Coord>& aPoint) {
     return stream << '(' << aPoint.x << ',' << aPoint.y << ')';
   }
 
 };
 
-}
-}
+} // namespace gfx
+} // namespace mozilla
 
 #endif /* MOZILLA_GFX_BASEPOINT_H_ */

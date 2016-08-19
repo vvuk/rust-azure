@@ -32,7 +32,9 @@
 #include <cmath>
 #include <vector>
 
-#include "SkTypes.h"
+#include "base/basictypes.h"
+#include "mozilla/Assertions.h"
+#include "skia/include/core/SkTypes.h"
 
 // avoid confusion with Mac OS X's math library (Carbon)
 #if defined(__APPLE__)
@@ -71,7 +73,8 @@ class ConvolutionFilter1D {
     // The cast relies on Fixed being a short, implying that on
     // the platforms we care about all (16) bits will fit into
     // the mantissa of a (32-bit) float.
-    //COMPILE_ASSERT(sizeof(Fixed) == 2, fixed_type_should_fit_in_float_mantissa);
+    static_assert(sizeof(Fixed) == 2,
+                  "fixed type should fit in float mantissa");
     float raw = static_cast<float>(x);
     return ldexpf(raw, -kShiftBits);
   }
@@ -181,6 +184,17 @@ void BGRAConvolve2D(const unsigned char* source_data,
                     const ConvolutionFilter1D& yfilter,
                     int output_byte_row_stride,
                     unsigned char* output);
+
+void ConvolveHorizontally(const unsigned char* src_data,
+                          const ConvolutionFilter1D& filter,
+                          unsigned char* out_row,
+                          bool has_alpha, bool use_sse2);
+
+void ConvolveVertically(const ConvolutionFilter1D::Fixed* filter_values,
+                        int filter_length,
+                        unsigned char* const* source_data_rows,
+                        int pixel_width, unsigned char* out_row,
+                        bool has_alpha, bool use_sse2);
 
 }  // namespace skia
 

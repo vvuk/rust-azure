@@ -6,7 +6,13 @@
 #ifndef MOZILLA_GFX_SCALEDFONTMAC_H_
 #define MOZILLA_GFX_SCALEDFONTMAC_H_
 
-#import <ApplicationServices/ApplicationServices.h>
+#ifdef MOZ_WIDGET_COCOA
+#include <ApplicationServices/ApplicationServices.h>
+#else
+#include <CoreGraphics/CoreGraphics.h>
+#include <CoreText/CoreText.h>
+#endif
+
 #include "2D.h"
 
 #include "ScaledFontBase.h"
@@ -25,10 +31,13 @@ public:
 #ifdef USE_SKIA
   virtual SkTypeface* GetSkTypeface();
 #endif
-  virtual TemporaryRef<Path> GetPathForGlyphs(const GlyphBuffer &aBuffer, const DrawTarget *aTarget);
+  virtual already_AddRefed<Path> GetPathForGlyphs(const GlyphBuffer &aBuffer, const DrawTarget *aTarget);
+  virtual void CopyGlyphsToBuilder(const GlyphBuffer &aBuffer, PathBuilder *aBuilder, BackendType aBackendType, const Matrix *aTransformHint);
+  virtual bool GetFontFileData(FontFileDataOutput aDataCallback, void *aBaton);
 
 private:
   friend class DrawTargetCG;
+  friend class DrawTargetSkia;
   CGFontRef mFont;
   CTFontRef mCTFont; // only created if CTFontDrawGlyphs is available, otherwise null
 
@@ -45,7 +54,7 @@ public:
   static CTFontDrawGlyphsFuncT* CTFontDrawGlyphsPtr;
 };
 
-}
-}
+} // namespace gfx
+} // namespace mozilla
 
 #endif /* MOZILLA_GFX_SCALEDFONTMAC_H_ */

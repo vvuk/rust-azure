@@ -116,7 +116,7 @@ RadialGradientEffectD2D1::PrepareForRender(D2D1_CHANGE_TYPE changeType)
     return S_OK;
   }
 
-  D2D1_POINT_2F dc = D2D1::Point2F(mCenter2.x - mCenter1.x, mCenter2.y - mCenter2.y);
+  D2D1_POINT_2F dc = D2D1::Point2F(mCenter2.x - mCenter1.x, mCenter2.y - mCenter1.y);
   float dr = mRadius2 - mRadius1;
   float A = dc.x * dc.x + dc.y * dc.y - dr * dr;
  
@@ -153,13 +153,13 @@ RadialGradientEffectD2D1::PrepareForRender(D2D1_CHANGE_TYPE changeType)
     float transform[8];
   };
 
-  PSConstantBuffer buffer = { { dc.x, dc.y, dr }, 0,
+  PSConstantBuffer buffer = { { dc.x, dc.y, dr }, 0.0f,
                               { mCenter1.x, mCenter1.y },
                               A, mRadius1, mRadius1 * mRadius1,
-                              mStopCollection->GetExtendMode() != D2D1_EXTEND_MODE_CLAMP ? 1 : 0,
-                              mStopCollection->GetExtendMode() == D2D1_EXTEND_MODE_MIRROR ? 1 : 0,
-                              { 0 }, { mat._11, mat._21, mat._31, 0,
-                                             mat._12, mat._22, mat._32, 0 } };
+                              mStopCollection->GetExtendMode() != D2D1_EXTEND_MODE_CLAMP ? 1.0f : 0.0f,
+                              mStopCollection->GetExtendMode() == D2D1_EXTEND_MODE_MIRROR ? 1.0f : 0.0f,
+                              { 0.0f }, { mat._11, mat._21, mat._31, 0.0f,
+                                             mat._12, mat._22, mat._32, 0.0f } };
 
   hr = mDrawInfo->SetPixelShaderConstantBuffer((BYTE*)&buffer, sizeof(buffer));
 
@@ -251,7 +251,7 @@ RadialGradientEffectD2D1::MapInvalidRect(UINT32 inputIndex,
                                          D2D1_RECT_L invalidInputRect,
                                          D2D1_RECT_L* pInvalidOutputRect) const
 {
-  MOZ_ASSERT(inputIndex = 0);
+  MOZ_ASSERT(inputIndex == 0);
 
   *pInvalidOutputRect = invalidInputRect;
   return S_OK;
@@ -268,12 +268,13 @@ HRESULT
 RadialGradientEffectD2D1::Register(ID2D1Factory1 *aFactory)
 {
   D2D1_PROPERTY_BINDING bindings[] = {
-    D2D1_VALUE_TYPE_BINDING(L"StopCollection", &SetStopCollection, &GetStopCollection),
-    D2D1_VALUE_TYPE_BINDING(L"Center1", &SetCenter1, &GetCenter1),
-    D2D1_VALUE_TYPE_BINDING(L"Center2", &SetCenter2, &GetCenter2),
-    D2D1_VALUE_TYPE_BINDING(L"Radius1", &SetRadius1, &GetRadius1),
-    D2D1_VALUE_TYPE_BINDING(L"Radius2", &SetRadius2, &GetRadius2),
-    D2D1_VALUE_TYPE_BINDING(L"Transform", &SetTransform, &GetTransform)
+    D2D1_VALUE_TYPE_BINDING(L"StopCollection", &RadialGradientEffectD2D1::SetStopCollection,
+                            &RadialGradientEffectD2D1::GetStopCollection),
+    D2D1_VALUE_TYPE_BINDING(L"Center1", &RadialGradientEffectD2D1::SetCenter1, &RadialGradientEffectD2D1::GetCenter1),
+    D2D1_VALUE_TYPE_BINDING(L"Center2", &RadialGradientEffectD2D1::SetCenter2, &RadialGradientEffectD2D1::GetCenter2),
+    D2D1_VALUE_TYPE_BINDING(L"Radius1", &RadialGradientEffectD2D1::SetRadius1, &RadialGradientEffectD2D1::GetRadius1),
+    D2D1_VALUE_TYPE_BINDING(L"Radius2", &RadialGradientEffectD2D1::SetRadius2, &RadialGradientEffectD2D1::GetRadius2),
+    D2D1_VALUE_TYPE_BINDING(L"Transform", &RadialGradientEffectD2D1::SetTransform, &RadialGradientEffectD2D1::GetTransform)
   };
   HRESULT hr = aFactory->RegisterEffectFromString(CLSID_RadialGradientEffect, kXmlDescription, bindings, ARRAYSIZE(bindings), CreateEffect);
 
@@ -281,6 +282,12 @@ RadialGradientEffectD2D1::Register(ID2D1Factory1 *aFactory)
     gfxWarning() << "Failed to register radial gradient effect.";
   }
   return hr;
+}
+
+void
+RadialGradientEffectD2D1::Unregister(ID2D1Factory1 *aFactory)
+{
+  aFactory->UnregisterEffect(CLSID_RadialGradientEffect);
 }
 
 HRESULT __stdcall
@@ -295,14 +302,14 @@ RadialGradientEffectD2D1::CreateEffect(IUnknown **aEffectImpl)
 HRESULT
 RadialGradientEffectD2D1::SetStopCollection(IUnknown *aStopCollection)
 {
-  if (SUCCEEDED(aStopCollection->QueryInterface((ID2D1GradientStopCollection**)byRef(mStopCollection)))) {
+  if (SUCCEEDED(aStopCollection->QueryInterface((ID2D1GradientStopCollection**)getter_AddRefs(mStopCollection)))) {
     return S_OK;
   }
 
   return E_INVALIDARG;
 }
 
-TemporaryRef<ID2D1ResourceTexture>
+already_AddRefed<ID2D1ResourceTexture>
 RadialGradientEffectD2D1::CreateGradientTexture()
 {
   std::vector<D2D1_GRADIENT_STOP> rawStops;
@@ -378,10 +385,10 @@ RadialGradientEffectD2D1::CreateGradientTexture()
   D2D1_EXTEND_MODE extendMode[] = { mStopCollection->GetExtendMode(), mStopCollection->GetExtendMode() };
   props.extendModes = extendMode;
 
-  HRESULT hr = mEffectContext->CreateResourceTexture(nullptr, &props, &textureData.front(), &stride, 4096 * 4, byRef(tex));
+  HRESULT hr = mEffectContext->CreateResourceTexture(nullptr, &props, &textureData.front(), &stride, 4096 * 4, getter_AddRefs(tex));
 
   if (FAILED(hr)) {
-    gfxWarning() << "Failed to create resource texture: " << hr;
+    gfxWarning() << "Failed to create resource texture: " << hexa(hr);
   }
 
   return tex.forget();

@@ -11,12 +11,14 @@
 #include <string.h>
 
 #include "mozilla/CheckedInt.h"
-#include "mozilla/Constants.h"
-#include "mozilla/Util.h"
 
 #include "2D.h"
 #include "DataSurfaceHelpers.h"
 #include "Tools.h"
+
+#ifdef BUILD_ARM_NEON
+#include "mozilla/arm.h"
+#endif
 
 using namespace std;
 
@@ -545,6 +547,7 @@ AlphaBoxBlur::Blur(uint8_t* aData)
       if (!integralImage) {
         return;
       }
+
 #ifdef USE_SSE2
       if (Factory::HasSSE2()) {
         BoxBlur_SSE2(aData, horizontalLobes[0][0], horizontalLobes[0][1], verticalLobes[0][0],
@@ -555,13 +558,32 @@ AlphaBoxBlur::Blur(uint8_t* aData)
                      verticalLobes[2][1], integralImage, integralImageStride);
       } else
 #endif
+#ifdef BUILD_ARM_NEON
+      if (mozilla::supports_neon()) {
+        BoxBlur_NEON(aData, horizontalLobes[0][0], horizontalLobes[0][1], verticalLobes[0][0],
+                     verticalLobes[0][1], integralImage, integralImageStride);
+        BoxBlur_NEON(aData, horizontalLobes[1][0], horizontalLobes[1][1], verticalLobes[1][0],
+                     verticalLobes[1][1], integralImage, integralImageStride);
+        BoxBlur_NEON(aData, horizontalLobes[2][0], horizontalLobes[2][1], verticalLobes[2][0],
+                     verticalLobes[2][1], integralImage, integralImageStride);
+      } else
+#endif
       {
+#ifdef _MIPS_ARCH_LOONGSON3A
+        BoxBlur_LS3(aData, horizontalLobes[0][0], horizontalLobes[0][1], verticalLobes[0][0],
+                     verticalLobes[0][1], integralImage, integralImageStride);
+        BoxBlur_LS3(aData, horizontalLobes[1][0], horizontalLobes[1][1], verticalLobes[1][0],
+                     verticalLobes[1][1], integralImage, integralImageStride);
+        BoxBlur_LS3(aData, horizontalLobes[2][0], horizontalLobes[2][1], verticalLobes[2][0],
+                     verticalLobes[2][1], integralImage, integralImageStride);
+#else
         BoxBlur_C(aData, horizontalLobes[0][0], horizontalLobes[0][1], verticalLobes[0][0],
                   verticalLobes[0][1], integralImage, integralImageStride);
         BoxBlur_C(aData, horizontalLobes[1][0], horizontalLobes[1][1], verticalLobes[1][0],
                   verticalLobes[1][1], integralImage, integralImageStride);
         BoxBlur_C(aData, horizontalLobes[2][0], horizontalLobes[2][1], verticalLobes[2][0],
                   verticalLobes[2][1], integralImage, integralImageStride);
+#endif
       }
     }
   }
@@ -713,7 +735,7 @@ AlphaBoxBlur::BoxBlur_C(uint8_t* aData,
       uint32_t value = bottomRight - topRight - bottomLeft;
       value += topLeft;
 
-      data[stride * y + x] = (uint64_t(reciprocal) * value) >> 32;
+      data[stride * y + x] = (uint64_t(reciprocal) * value + (uint64_t(1) << 31)) >> 32;
     }
   }
 }
@@ -741,5 +763,5 @@ AlphaBoxBlur::CalculateBlurRadius(const Point& aStd)
     return size;
 }
 
-}
-}
+} // namespace gfx
+} // namespace mozilla

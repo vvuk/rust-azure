@@ -8,6 +8,8 @@
 
 #include "ScaledFontBase.h"
 
+#include "cairo.h"
+
 namespace mozilla {
 namespace gfx {
 
@@ -17,45 +19,13 @@ public:
   MOZ_DECLARE_REFCOUNTED_VIRTUAL_TYPENAME(ScaledFontCairo)
 
   ScaledFontCairo(cairo_scaled_font_t* aScaledFont, Float aSize);
-  ScaledFontCairo(const uint8_t* aData, uint32_t aFileSize, uint32_t aIndex, Float aSize);
-  ~ScaledFontCairo();
 
 #if defined(USE_SKIA) && defined(MOZ_ENABLE_FREETYPE)
   virtual SkTypeface* GetSkTypeface();
 #endif
-
-private:
-#ifdef MOZ_ENABLE_FREETYPE
-  FT_Face mFTFace;
-#endif
 };
 
-// We need to be able to tell Skia whether or not to use
-// hinting when rendering text, so that the glyphs it renders
-// are the same as what layout is expecting. At the moment, only
-// Skia uses this class when rendering with FreeType, as gfxFT2Font
-// is the only gfxFont that honours gfxPlatform::FontHintingEnabled().
-class GlyphRenderingOptionsCairo : public GlyphRenderingOptions
-{
-public:
-  MOZ_DECLARE_REFCOUNTED_VIRTUAL_TYPENAME(GlyphRenderingOptionsCairo)
-  GlyphRenderingOptionsCairo()
-    : mHinting(FontHinting::NORMAL)
-    , mAutoHinting(false)
-  {
-  }
-
-  void SetHinting(FontHinting aHinting) { mHinting = aHinting; }
-  void SetAutoHinting(bool aAutoHinting) { mAutoHinting = aAutoHinting; }
-  FontHinting GetHinting() const { return mHinting; }
-  bool GetAutoHinting() const { return mAutoHinting; }
-  virtual FontType GetType() const { return FontType::CAIRO; }
-private:
-  FontHinting mHinting;
-  bool mAutoHinting;
-};
-
-}
-}
+} // namespace gfx
+} // namespace mozilla
 
 #endif /* MOZILLA_GFX_SCALEDFONTCAIRO_H_ */

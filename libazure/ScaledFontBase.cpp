@@ -7,7 +7,7 @@
 
 #ifdef USE_SKIA
 #include "PathSkia.h"
-#include "core/SkPaint.h"
+#include "skia/include/core/SkPaint.h"
 #endif
 
 #ifdef USE_CAIRO
@@ -45,6 +45,33 @@ ScaledFontBase::ScaledFontBase(Float aSize)
 #endif
 }
 
+#ifdef USE_CAIRO_SCALED_FONT
+bool
+ScaledFontBase::PopulateCairoScaledFont()
+{
+  cairo_font_face_t* cairoFontFace = GetCairoFontFace();
+  if (!cairoFontFace) {
+    return false;
+  }
+
+  cairo_matrix_t sizeMatrix;
+  cairo_matrix_t identityMatrix;
+
+  cairo_matrix_init_scale(&sizeMatrix, mSize, mSize);
+  cairo_matrix_init_identity(&identityMatrix);
+
+  cairo_font_options_t *fontOptions = cairo_font_options_create();
+
+  mScaledFont = cairo_scaled_font_create(cairoFontFace, &sizeMatrix,
+    &identityMatrix, fontOptions);
+
+  cairo_font_options_destroy(fontOptions);
+  cairo_font_face_destroy(cairoFontFace);
+
+  return (cairo_scaled_font_status(mScaledFont) == CAIRO_STATUS_SUCCESS);
+}
+#endif
+
 #ifdef USE_SKIA
 SkPath
 ScaledFontBase::GetSkiaPathForGlyphs(const GlyphBuffer &aBuffer)
@@ -74,13 +101,13 @@ ScaledFontBase::GetSkiaPathForGlyphs(const GlyphBuffer &aBuffer)
 }
 #endif
 
-TemporaryRef<Path>
+already_AddRefed<Path>
 ScaledFontBase::GetPathForGlyphs(const GlyphBuffer &aBuffer, const DrawTarget *aTarget)
 {
 #ifdef USE_SKIA
   if (aTarget->GetBackendType() == BackendType::SKIA) {
     SkPath path = GetSkiaPathForGlyphs(aBuffer);
-    return new PathSkia(path, FillRule::FILL_WINDING);
+    return MakeAndAddRef<PathSkia>(path, FillRule::FILL_WINDING);
   }
 #endif
 #ifdef USE_CAIRO
@@ -107,6 +134,8 @@ ScaledFontBase::GetPathForGlyphs(const GlyphBuffer &aBuffer, const DrawTarget *a
       glyphs[i].x = aBuffer.mGlyphs[i].mPosition.x;
       glyphs[i].y = aBuffer.mGlyphs[i].mPosition.y;
     }
+
+    cairo_new_path(ctx);
 
     cairo_glyph_path(ctx, &glyphs[0], aBuffer.mNumGlyphs);
 
@@ -163,8 +192,58 @@ ScaledFontBase::CopyGlyphsToBuilder(const GlyphBuffer &aBuffer, PathBuilder *aBu
   }
 #endif
 
-  MOZ_CRASH("The specified backend type is not supported by CopyGlyphsToBuilder");
+  MOZ_CRASH("GFX: The specified backend type is not supported by CopyGlyphsToBuilder");
 }
+
+void
+ScaledFontBase::GetGlyphDesignMetrics(const uint16_t* aGlyphs, uint32_t aNumGlyphs, GlyphMetrics* aGlyphMetrics)
+{
+#ifdef USE_CAIRO_SCALED_FONT
+  if (mScaledFont) {
+    for (uint32_t i = 0; i < aNumGlyphs; i++) {
+      cairo_glyph_t glyph;
+      cairo_text_extents_t extents;
+      glyph.index = aGlyphs[i];
+      glyph.x = 0;
+      glyph.y = 0;
+
+      cairo_scaled_font_glyph_extents(mScaledFont, &glyph, 1, &extents);
+
+      aGlyphMetrics[i].mXBearing = extents.x_bearing;
+      aGlyphMetrics[i].mXAdvance = extents.x_advance;
+      aGlyphMetrics[i].mYBearing = extents.y_bearing;
+      aGlyphMetrics[i].mYAdvance = extents.y_advance;
+      aGlyphMetrics[i].mWidth = extents.width;
+      aGlyphMetrics[i].mHeight = extents.height;
+
+      cairo_font_options_t *options = cairo_font_options_create();
+      cairo_scaled_font_get_font_options(mScaledFont, options);
+
+      if (cairo_font_options_get_antialias(options) != CAIRO_ANTIALIAS_NONE) {
+        if (cairo_scaled_font_get_type(mScaledFont) == CAIRO_FONT_TYPE_WIN32) {
+          if (aGlyphMetrics[i].mWidth > 0 && aGlyphMetrics[i].mHeight > 0) {
+            aGlyphMetrics[i].mWidth -= 3.0f;
+            aGlyphMetrics[i].mXBearing += 1.0f;
+          }
+        }
+#if defined(MOZ2D_HAS_MOZ_CAIRO) && defined(CAIRO_HAS_DWRITE_FONT)
+        else if (cairo_scaled_font_get_type(mScaledFont) == CAIRO_FONT_TYPE_DWRITE) {
+          if (aGlyphMetrics[i].mWidth > 0 && aGlyphMetrics[i].mHeight > 0) {
+            aGlyphMetrics[i].mWidth -= 2.0f;
+            aGlyphMetrics[i].mXBearing += 1.0f;
+          }
+        }
+#endif
+      }
+    }
+
+  }
+#endif
+
+  // Don't know how to get the glyph metrics...
+  MOZ_CRASH("The specific backend type is not supported for GetGlyphDesignMetrics.");
+}
+
 
 #ifdef USE_CAIRO_SCALED_FONT
 void
@@ -181,23 +260,7 @@ ScaledFontBase::SetCairoScaledFont(cairo_scaled_font_t* font)
   mScaledFont = font;
   cairo_scaled_font_reference(mScaledFont);
 }
-
-void
-ScaledFontBase::InitScaledFontFromFace(cairo_font_face_t* aFace)
-{
-  cairo_matrix_t sizeMatrix;
-  cairo_matrix_t identityMatrix;
-  
-  cairo_matrix_init_scale(&sizeMatrix, mSize, mSize);
-  cairo_matrix_init_identity(&identityMatrix);
-
-  cairo_font_options_t *fontOptions = cairo_font_options_create();
-  
-  mScaledFont = cairo_scaled_font_create(aFace, &sizeMatrix, &identityMatrix, fontOptions);
-  
-  cairo_font_options_destroy(fontOptions);
-}
 #endif
 
-}
-}
+} // namespace gfx
+} // namespace mozilla
