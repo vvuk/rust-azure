@@ -6,7 +6,9 @@
 #include "DrawTargetSkia.h"
 #include "SourceSurfaceSkia.h"
 #include "ScaledFontBase.h"
+#ifdef USE_CAIRO
 #include "ScaledFontCairo.h"
+#endif
 #include "SkBitmapDevice.h"
 #include "FilterNodeSoftware.h"
 #include "HelpersSkia.h"

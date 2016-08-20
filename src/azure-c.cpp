@@ -192,7 +192,7 @@ AzCreateDrawTargetForData(AzBackendType aBackend, unsigned char *aData, AzIntSiz
                                                                            *size,
                                                                            aStride,
                                                                            surfaceFormat);
-    if (target != NULL) {
+    if (target) {
         target->AddRef();
     }
     return target;

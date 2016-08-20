@@ -14,9 +14,11 @@
 #ifdef USE_SKIA
 #include "DrawTargetSkia.h"
 #include "ScaledFontBase.h"
+#ifdef USE_CAIRO
 #ifdef MOZ_ENABLE_FREETYPE
 #define USE_SKIA_FREETYPE
 #include "ScaledFontCairo.h"
+#endif
 #endif
 #endif
 
